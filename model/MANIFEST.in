@@ -1,3 +1,0 @@
-include *.rst
-include LICENSE
-include hankshaw/configspec-v1.ini
