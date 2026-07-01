@@ -340,16 +340,17 @@ class Metapopulation(object):
                     return(fitness_current_genotype)
                 else:
                     # Iterate through all bit flips
-                    fitness_sum = 0
+                    max_fitness = fitness_current_genotype
                     for i in range(len(genotype) - 1):
                         flipped_genotype = genotype[0:i+1] + "1" + genotype[i+2:] if genotype[i+1] == "0" else genotype[0:i+1] + "0" + genotype[i+2:]
                         nonzero_loci = np.nonzero([int(i) for i in [*flipped_genotype[1:]]])[0]
                         fitness_flipped_bit = benefit_nonzero**((np.sum(nonzero_loci)+len(nonzero_loci))*smooth_scaling)
 
-                        # If the sampled mutant has higher fitness, add that to the total learned fitness, otherwise add the base fitness (genotype-encoded)
-                        fitness_sum += fitness_flipped_bit if fitness_flipped_bit > fitness_current_genotype else fitness_current_genotype
+                        # If the sampled mutant has the highest seen fitness, copy the fitness of that genotype
+                        if fitness_flipped_bit > max_fitness:
+                            max_fitness = fitness_flipped_bit
 
-                    return (fitness_sum*(1-production_cost)/(len(genotype)-1))
+                    return max_fitness * (1 - production_cost)
 
             # Custom fitness function
             else:
@@ -357,15 +358,16 @@ class Metapopulation(object):
                     return (fitness_function(genotype_base10 - 1))
                 else:
                     fitness_current_genotype = fitness_function(genotype_base10 - (2**genome_length) - 1)
-                    fitness_sum = 0
+                    max_fitness = fitness_current_genotype
                     for i in range(len(genotype) - 1):
                         flipped_genotype = genotype[0:i+1] + "1" + genotype[i+2:] if genotype[i+1] == "0" else genotype[0:i+1] + "0" + genotype[i+2:]
                         genotype_base10_flipped = int(flipped_genotype, 2)
                         fitness_flipped_bit = fitness_function(genotype_base10_flipped)
 
-                        fitness_sum += fitness_flipped_bit if fitness_flipped_bit > fitness_current_genotype else fitness_current_genotype
+                        if fitness_flipped_bit > max_fitness:
+                            max_fitness = fitness_flipped_bit
 
-                    return (fitness_sum*(1-production_cost)/(len(genotype)-1))
+                    return max_fitness * (1 - production_cost)
 
     def insert_types(self, new_genotypes):
         """Add a new (set of) genotype(s) to the type-genotype mapping and fitness landscape,
